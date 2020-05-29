@@ -1,6 +1,8 @@
 var express = require('express');
+let paginate = require('express-paginate');
 var router = express.Router();
 let Book = require('../models').Book;
+let {Op} = require('sequelize');
 const asyncHandler = require('express-async-handler');
 
 /* GET all books */
@@ -30,6 +32,8 @@ router.post('/new', asyncHandler(async (req, res) => {
     if (error.name === "SequelizeValidationError") {
       book = await Book.build(req.body);
       res.render('form-error', {book, title: 'New Book'})
+    } else {
+      throw error;
     }
   }
 }));
@@ -46,6 +50,36 @@ router.post('/:id/delete', asyncHandler(async (req, res) => {
   let book = await Book.findByPk(req.params.id);
   await book.destroy();
   res.redirect('/books');
+}));
+
+// search results
+router.post('/', asyncHandler(async (req, res) => {
+  let search = req.body.search;
+  let books = await Book.findAll({
+    where: {
+      [Op.or]: [
+        {
+          title: {
+            [Op.substring]: search
+          },
+        },
+        {
+          author: {
+            [Op.substring]: search
+          },
+        },
+        {
+          genre: {
+            [Op.substring]: search
+          },
+        },
+        {
+          year: search
+        }
+      ]
+    }
+  });
+  res.render('index', {books, title: 'Books'});
 }));
 
 module.exports = router;
