@@ -19,7 +19,7 @@ router.get('/new', (req, res) => {
 // book detail view
 router.get('/:id', asyncHandler(async (req, res) => {
   let book = await Book.findByPk(req.params.id);
-  res.render('detail-view', {book, title: book.title});
+  res.render('update-book', {book, title: book.title});
 }));
 
 // post new book
